@@ -1,3 +1,5 @@
+import circle from "../assets/Ellipse.png"
+
 export default function History() {
   return (
     <>
@@ -17,16 +19,18 @@ export default function History() {
             </thead>
             <tbody className="text-gray-200">
               <tr>
-                <td className="py-2 px-4">Tarefa 1</td>
+                <td className="py-2 px-4">Tarefa 11</td>
                 <td className="py-2 px-4">20 minutos</td>
                 <td className="py-2 px-4">Há 2 meses</td>
-                <td className="py-2 px-4">Concluído</td>
+                <td className="py-2 px-4 flex items-center gap-2 justify-center">
+                  <img src={circle} /> Concluído
+                </td>
               </tr>
               <tr>
                 <td className="py-2 px-4">Tarefa 2</td>
                 <td className="py-2 px-4">20 minutos</td>
                 <td className="py-2 px-4">Há 2 meses</td>
-                <td className="py-2 px-4">Concluído</td>
+                <td className="py-2 px-4">Em andamento</td>
               </tr>
               <tr>
                 <td className="py-2 px-4">Tarefa 3</td>
