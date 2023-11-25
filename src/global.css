@@ -5,3 +5,20 @@
 body {
   @apply bg-black;
 }
+
+/*remove a seta no input que recebe a datalist*/
+#task::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
+/*remove a setas do quando o input é do tipo number*/
+#number {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+#number::-webkit-inner-spin-button,
+#number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
