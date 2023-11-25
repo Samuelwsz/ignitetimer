@@ -30,13 +30,14 @@ export default function Home() {
                 <input
                   type="number"
                   id="number"
+                  /*step={5} min e max*/
                   className="w-12 bg-gray-700 text-gray-300 outline-none rounded-sm mx-1 my-2 border-b-2 border-green-600 appearance-none"
                 />
                 <span>minutos.</span>
               </label>
             </div>
 
-            <div className="text-white text-9xl flex items-center justify-center my-5">
+            <div className="text-white text-9xl flex items-center justify-center my-16">
               <span className="bg-gray-900 p-1 mr-3">0</span>
               <span className="bg-gray-900 p-1">0</span>
 
@@ -46,7 +47,7 @@ export default function Home() {
               <span className="bg-gray-900 p-1">0</span>
             </div>
 
-            <p className="text-white bg-black w-4/5 p-2 m-auto mb-2">
+            <p className="text-white bg-black w-[60%] py-1 m-auto mb-5">
               Preencha o nome e a duração antes de começar
             </p>
             <button
