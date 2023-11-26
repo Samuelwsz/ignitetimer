@@ -1,9 +1,12 @@
 import { useForm } from "react-hook-form"
-import arrow from "../assets/Arrow.svg"
+import arrow from "../../assets/Arrow.svg"
+import pause from "../../assets/Pause.svg"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as zod from "zod"
 import { useEffect, useState } from "react"
 import { differenceInSeconds } from "date-fns"
+import NewCycleForm from "./pagesHome/newCycleForm"
+import Countdown from "./pagesHome/countdown"
 
 /*forms controlled = criar o state e usar nos inputs  | uncontrolled */
 
@@ -11,7 +14,7 @@ const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, "Informe a tarefa"),
   minutesAmount: zod
     .number()
-    .min(5, "O intervalo precisa ser de no mínimo 5 minutos")
+    .min(1, "O intervalo precisa ser de no mínimo 1 minutos")
     .max(60, "O intervalo precisa ser de no máximo 60 minutos"),
 })
 
@@ -22,6 +25,8 @@ interface Cycle {
   task: string
   minutesAMount: number
   startDate: Date
+  interruptedDate?: Date
+  finishedDate?: Date
 }
 
 export default function Home() {
@@ -37,21 +42,41 @@ export default function Home() {
   })
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
+  const totalSeconds = activeCycle ? activeCycle.minutesAMount * 60 : 0
+
   useEffect(() => {
     let interaval: number
 
     if (activeCycle) {
       interaval = setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate)
+        const secondDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate
         )
+
+        if (secondDifference >= totalSeconds) {
+          setCycles((state) =>
+            state.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            })
+          )
+
+          setAmountSecondsPassed(totalSeconds)
+          clearInterval(interaval)
+        } else {
+          setAmountSecondsPassed(secondDifference)
+        }
       }, 1000)
     }
 
     return () => {
       clearInterval(interaval)
     }
-  }, [activeCycle])
+  }, [activeCycle, totalSeconds, activeCycleId])
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -70,7 +95,18 @@ export default function Home() {
     reset()
   }
 
-  const totalSeconds = activeCycle ? activeCycle.minutesAMount * 60 : 0
+  function handleInterruptCycle() {
+    setCycles((state) =>
+      state.map((cycle) => {
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, interruptedDate: new Date() }
+        } else {
+          return cycle
+        }
+      })
+    )
+    setActiveCycleId(null)
+  }
 
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
 
@@ -94,58 +130,29 @@ export default function Home() {
       <div className="flex justify-center pt-8">
         <div className="bg-gray-800 p-4 rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-lg text-center relative shadow-md sm:w-4/5 md:w-11/12 lg:w-11/12 xl:w-4/5">
           <form onSubmit={handleSubmit(handleCreateNewCycle)}>
-            <div className="text-white flex flex-col items-center justify-center md:flex-row lg:flex-row xl:flex-row ">
-              {" "}
-              <label>
-                {" "}
-                Vou trabalhar em{" "}
-                <input
-                  id="task"
-                  type="text"
-                  list="task-sugestion"
-                  placeholder="De um nome ao seu projeto"
-                  {...register("task")}
-                  className="bg-gray-700 text-gray-300 outline-none rounded-sm mx-1 my-2 w-52 sm:w-52 md:w-52 lg:w-56 border-b-2 border-green-600"
-                />
-                <datalist id="task-sugestion">
-                  <option value="Projeto 1" />
-                  <option value="Projeto 2" />
-                  <option value="Projeto 3" />
-                </datalist>
-              </label>
-              <label>
-                durante{" "}
-                <input
-                  type="number"
-                  id="number"
-                  {...register("minutesAmount", { valueAsNumber: true })}
-                  /*step={5} min e max*/
-                  className="w-12 bg-gray-700 text-gray-300 outline-none rounded-sm mx-1 my-2 border-b-2 border-green-600 appearance-none"
-                />
-                <span>minutos.</span>
-              </label>
-            </div>
-
-            <div className="text-white text-9xl flex items-center justify-center my-16">
-              <span className="bg-gray-900 p-1 mr-3">{minutes[0]}</span>
-              <span className="bg-gray-900 p-1">{minutes[1]}</span>
-
-              <p className="text-green-600 mx-1">:</p>
-
-              <span className="bg-gray-900 p-1 mr-3">{seconds[0]}</span>
-              <span className="bg-gray-900 p-1">{seconds[1]}</span>
-            </div>
+            <NewCycleForm />
+            <Countdown />
 
             <p className="text-white bg-black w-[60%] py-1 m-auto mb-5">
               Preencha o nome e a duração antes de começar
             </p>
-            <button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="text-white bg-green-600 p-2 w-4/5 flex items-center justify-center m-auto gap-2 rounded-sm hover:bg-green-700 disabled:bg-green-700 disabled:opacity-50"
-            >
-              <img src={arrow} className="w-5 h-5" /> Começar
-            </button>
+            {activeCycle ? (
+              <button
+                type="button"
+                onClick={handleInterruptCycle}
+                className="text-white bg-red-600 p-2 w-4/5 flex items-center justify-center m-auto gap-2 rounded-sm hover:bg-red-700"
+              >
+                <img src={pause} className="w-5 h-5" /> Interromper
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="text-white bg-green-600 p-2 w-4/5 flex items-center justify-center m-auto gap-2 rounded-sm hover:bg-green-700 disabled:bg-green-700 disabled:opacity-50"
+              >
+                <img src={arrow} className="w-5 h-5" /> Começar
+              </button>
+            )}
           </form>
         </div>
       </div>
