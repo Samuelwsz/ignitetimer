@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form"
 import arrow from "../assets/Arrow.svg"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as zod from "zod"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { differenceInSeconds } from "date-fns"
 
 /*forms controlled = criar o state e usar nos inputs  | uncontrolled */
 
@@ -20,6 +21,7 @@ interface Cycle {
   id: string
   task: string
   minutesAMount: number
+  startDate: Date
 }
 
 export default function Home() {
@@ -33,6 +35,23 @@ export default function Home() {
       task: "",
     },
   })
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    let interaval: number
+
+    if (activeCycle) {
+      interaval = setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate)
+        )
+      }, 1000)
+    }
+
+    return () => {
+      clearInterval(interaval)
+    }
+  }, [activeCycle])
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -41,15 +60,15 @@ export default function Home() {
       id,
       task: data.task,
       minutesAMount: data.minutesAmount,
+      startDate: new Date(),
     }
 
     setCycles((state) => [...state, newCycle])
     setActiveCycleId(id)
+    setAmountSecondsPassed(0)
 
     reset()
   }
-
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   const totalSeconds = activeCycle ? activeCycle.minutesAMount * 60 : 0
 
@@ -63,6 +82,12 @@ export default function Home() {
 
   const task = watch("task")
   const isSubmitDisabled = !task
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [minutes, seconds, activeCycle])
 
   return (
     <>
