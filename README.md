@@ -8,4 +8,6 @@ npm i @hookform/resolvers
 
 npm i date-fns
 
+npm i immer
+
 typescript error translator

@@ -20,7 +20,7 @@ export default function Countdown() {
       interaval = setInterval(() => {
         const secondDifference = differenceInSeconds(
           new Date(),
-          activeCycle.startDate
+          new Date(activeCycle.startDate)
         )
 
         if (secondDifference >= totalSeconds) {

@@ -31,7 +31,7 @@ export default function History() {
                     <td className="py-2 px-4">{cycle.task}</td>
                     <td className="py-2 px-4">{cycle.minutesAmount} minutos</td>
                     <td className="py-2 px-4">
-                      {formatDistanceToNow(cycle.startDate, {
+                      {formatDistanceToNow(new Date(cycle.startDate), {
                         addSuffix: true,
                         locale: ptBR,
                       })}
