@@ -1,12 +1,12 @@
-import { useForm } from "react-hook-form"
+import { useForm, FormProvider } from "react-hook-form"
 import arrow from "../../assets/Arrow.svg"
 import pause from "../../assets/Pause.svg"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as zod from "zod"
-import { useEffect, useState } from "react"
-import { differenceInSeconds } from "date-fns"
+import { useContext } from "react"
 import NewCycleForm from "./pagesHome/newCycleForm"
 import Countdown from "./pagesHome/countdown"
+import { CyclesContext } from "../../context/CyclesContext"
 
 /*forms controlled = criar o state e usar nos inputs  | uncontrolled */
 
@@ -20,117 +20,37 @@ const newCycleFormValidationSchema = zod.object({
 
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
-interface Cycle {
-  id: string
-  task: string
-  minutesAMount: number
-  startDate: Date
-  interruptedDate?: Date
-  finishedDate?: Date
-}
-
 export default function Home() {
-  const [cycles, setCycles] = useState<Cycle[]>([])
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+  const { activeCycle, createNewCycle, interruptCurrentCycle } =
+    useContext(CyclesContext)
 
-  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+  const newCycleForm = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
       task: "",
     },
   })
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
-  const totalSeconds = activeCycle ? activeCycle.minutesAMount * 60 : 0
-
-  useEffect(() => {
-    let interaval: number
-
-    if (activeCycle) {
-      interaval = setInterval(() => {
-        const secondDifference = differenceInSeconds(
-          new Date(),
-          activeCycle.startDate
-        )
-
-        if (secondDifference >= totalSeconds) {
-          setCycles((state) =>
-            state.map((cycle) => {
-              if (cycle.id === activeCycleId) {
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle
-              }
-            })
-          )
-
-          setAmountSecondsPassed(totalSeconds)
-          clearInterval(interaval)
-        } else {
-          setAmountSecondsPassed(secondDifference)
-        }
-      }, 1000)
-    }
-
-    return () => {
-      clearInterval(interaval)
-    }
-  }, [activeCycle, totalSeconds, activeCycleId])
+  const { handleSubmit, watch, reset } = newCycleForm
 
   function handleCreateNewCycle(data: NewCycleFormData) {
-    const id = String(new Date().getTime())
-
-    const newCycle: Cycle = {
-      id,
-      task: data.task,
-      minutesAMount: data.minutesAmount,
-      startDate: new Date(),
-    }
-
-    setCycles((state) => [...state, newCycle])
-    setActiveCycleId(id)
-    setAmountSecondsPassed(0)
+    createNewCycle(data)
 
     reset()
   }
 
-  function handleInterruptCycle() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, interruptedDate: new Date() }
-        } else {
-          return cycle
-        }
-      })
-    )
-    setActiveCycleId(null)
-  }
-
-  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
-
-  const minutesAmount = Math.floor(currentSeconds / 60)
-  const secondsAmount = currentSeconds % 60
-
-  const minutes = String(minutesAmount).padStart(2, "0")
-  const seconds = String(secondsAmount).padStart(2, "0")
-
   const task = watch("task")
   const isSubmitDisabled = !task
-
-  useEffect(() => {
-    if (activeCycle) {
-      document.title = `${minutes}:${seconds}`
-    }
-  }, [minutes, seconds, activeCycle])
 
   return (
     <>
       <div className="flex justify-center pt-8">
         <div className="bg-gray-800 p-4 rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-lg text-center relative shadow-md sm:w-4/5 md:w-11/12 lg:w-11/12 xl:w-4/5">
           <form onSubmit={handleSubmit(handleCreateNewCycle)}>
-            <NewCycleForm />
+            <FormProvider {...newCycleForm}>
+              <NewCycleForm />
+            </FormProvider>
+
             <Countdown />
 
             <p className="text-white bg-black w-[60%] py-1 m-auto mb-5">
@@ -139,7 +59,7 @@ export default function Home() {
             {activeCycle ? (
               <button
                 type="button"
-                onClick={handleInterruptCycle}
+                onClick={interruptCurrentCycle}
                 className="text-white bg-red-600 p-2 w-4/5 flex items-center justify-center m-auto gap-2 rounded-sm hover:bg-red-700"
               >
                 <img src={pause} className="w-5 h-5" /> Interromper

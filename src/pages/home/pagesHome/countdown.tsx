@@ -1,4 +1,64 @@
+import { differenceInSeconds } from "date-fns"
+import { useContext, useEffect } from "react"
+import { CyclesContext } from "../../../context/CyclesContext"
+
 export default function Countdown() {
+  const {
+    activeCycle,
+    activeCycleId,
+    markCurrentCycleAsFinished,
+    amountSecondsPassed,
+    setSecondsPassed,
+  } = useContext(CyclesContext)
+
+  const totalSeconds = activeCycle ? activeCycle.minutesAMount * 60 : 0
+
+  useEffect(() => {
+    let interaval: number
+
+    if (activeCycle) {
+      interaval = setInterval(() => {
+        const secondDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate
+        )
+
+        if (secondDifference >= totalSeconds) {
+          markCurrentCycleAsFinished()
+
+          setSecondsPassed(totalSeconds)
+          clearInterval(interaval)
+        } else {
+          setSecondsPassed(secondDifference)
+        }
+      }, 1000)
+    }
+
+    return () => {
+      clearInterval(interaval)
+    }
+  }, [
+    activeCycle,
+    totalSeconds,
+    activeCycleId,
+    markCurrentCycleAsFinished,
+    setSecondsPassed,
+  ])
+
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  const minutes = String(minutesAmount).padStart(2, "0")
+  const seconds = String(secondsAmount).padStart(2, "0")
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [minutes, seconds, activeCycle])
+
   return (
     <>
       <div className="text-white text-9xl flex items-center justify-center my-16">
