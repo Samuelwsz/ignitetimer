@@ -7,3 +7,5 @@ npm i zod
 npm i @hookform/resolvers
 
 npm i date-fns
+
+typescript error translator

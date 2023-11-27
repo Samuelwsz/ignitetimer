@@ -1,6 +1,8 @@
 import { useContext } from "react"
-import circle from "../assets/Ellipse.png"
+import { formatDistanceToNow } from "date-fns"
+import ptBR from "date-fns/locale/pt-BR"
 import { CyclesContext } from "../context/CyclesContext"
+import { XCircleIcon } from "@heroicons/react/24/outline"
 
 export default function History() {
   const { cycles } = useContext(CyclesContext)
@@ -11,8 +13,6 @@ export default function History() {
         <h1 className="text-white text-3xl text-left font-semibold mb-4">
           Meu Histórico
         </h1>
-
-        <pre>{JSON.stringify(cycles, null, 2)}</pre>
 
         <div className="overflow-x-auto">
           <table className="w-full table-auto border-collapse border border-gray-800">
@@ -25,26 +25,38 @@ export default function History() {
               </tr>
             </thead>
             <tbody className="text-gray-200">
-              <tr>
-                <td className="py-2 px-4">Tarefa 11</td>
-                <td className="py-2 px-4">20 minutos</td>
-                <td className="py-2 px-4">Há 2 meses</td>
-                <td className="py-2 px-4 flex items-center gap-2 justify-center">
-                  <img src={circle} /> Concluído
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 px-4">Tarefa 2</td>
-                <td className="py-2 px-4">20 minutos</td>
-                <td className="py-2 px-4">Há 2 meses</td>
-                <td className="py-2 px-4">Em andamento</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-4">Tarefa 3</td>
-                <td className="py-2 px-4">20 minutos</td>
-                <td className="py-2 px-4">Há 2 meses</td>
-                <td className="py-2 px-4">Concluído</td>
-              </tr>
+              {cycles.map((cycle) => {
+                return (
+                  <tr key={cycle.id}>
+                    <td className="py-2 px-4">{cycle.task}</td>
+                    <td className="py-2 px-4">{cycle.minutesAmount} minutos</td>
+                    <td className="py-2 px-4">
+                      {formatDistanceToNow(cycle.startDate, {
+                        addSuffix: true,
+                        locale: ptBR,
+                      })}
+                    </td>
+                    {cycle.finishedDate && (
+                      <td className="py-2 px-4 flex items-center gap-2 justify-center">
+                        <XCircleIcon className="w-3 h-3 bg-green-500 text-green-500 rounded-[50%]" />
+                        Concluído
+                      </td>
+                    )}
+                    {cycle.interruptedDate && (
+                      <td className="py-2 px-4 flex items-center gap-2 justify-center">
+                        <XCircleIcon className="w-3 h-3 bg-red-500 text-red-500 rounded-[50%]" />
+                        Interrompido
+                      </td>
+                    )}
+                    {!cycle.finishedDate && !cycle.interruptedDate && (
+                      <td className="py-2 px-4 flex items-center gap-2 justify-center">
+                        <XCircleIcon className="w-3 h-3 bg-yellow-500 text-yellow-500 rounded-[50%]" />
+                        Em andamento
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
